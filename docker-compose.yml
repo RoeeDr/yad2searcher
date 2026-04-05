@@ -1,0 +1,26 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: yad2searcher-mongo
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db
+    ports:
+      - "27017:27017"
+
+  app:
+    build: .
+    container_name: yad2searcher-app
+    restart: unless-stopped
+    depends_on:
+      - mongo
+    environment:
+      - MONGO_URI=mongodb://mongo:27017
+      - YAD2_SEARCH_URL=${YAD2_SEARCH_URL}
+      - CRAWL_INTERVAL_MINUTES=${CRAWL_INTERVAL_MINUTES:-10}
+      - HEADLESS=true
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN:-}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID:-}
+
+volumes:
+  mongo-data:
