@@ -49,9 +49,9 @@ export class TerminalAlerter implements Alerter {
 
     console.log(listing.isBroker ? "🔑 תיווך" : "🏠 פרטי");
 
-    if (listing.hasBalcony !== undefined) console.log(listing.hasBalcony ? "🌇 מרפסת" : "❌ מרפסת");
-    if (listing.hasElevator !== undefined) console.log(listing.hasElevator ? "🛗 מעלית" : "❌ מעלית");
-    if (listing.hasShelter !== undefined) console.log(listing.hasShelter ? "🛡️ ממ״ד" : "❌ ממ״ד");
+    console.log(listing.hasBalcony === undefined ? "⚪ מרפסת - לא צוין" : listing.hasBalcony ? "🌇 מרפסת" : "❌ מרפסת");
+    console.log(listing.hasElevator === undefined ? "⚪ מעלית - לא צוין" : listing.hasElevator ? "🛗 מעלית" : "❌ מעלית");
+    console.log(listing.hasShelter === undefined ? "⚪ ממ״ד - לא צוין" : listing.hasShelter ? "🛡️ ממ״ד" : "❌ ממ״ד");
 
     if (listing.publishedDate) {
       console.log(`📅 פורסם ב-${listing.publishedDate}`);
@@ -134,9 +134,9 @@ export class TelegramAlerter implements Alerter {
     if (floor) lines.push(`🏢 ${floor}`);
     if (sqm) lines.push(`📐 ${sqm}`);
     lines.push(listing.isBroker ? "🔑 תיווך" : "🏠 פרטי");
-    if (listing.hasBalcony !== undefined) lines.push(listing.hasBalcony ? "🌇 מרפסת" : "❌ מרפסת");
-    if (listing.hasElevator !== undefined) lines.push(listing.hasElevator ? "🛗 מעלית" : "❌ מעלית");
-    if (listing.hasShelter !== undefined) lines.push(listing.hasShelter ? "🛡️ ממ״ד" : "❌ ממ״ד");
+    lines.push(listing.hasBalcony === undefined ? "⚪ מרפסת - לא צוין" : listing.hasBalcony ? "🌇 מרפסת" : "❌ מרפסת");
+    lines.push(listing.hasElevator === undefined ? "⚪ מעלית - לא צוין" : listing.hasElevator ? "🛗 מעלית" : "❌ מעלית");
+    lines.push(listing.hasShelter === undefined ? "⚪ ממ״ד - לא צוין" : listing.hasShelter ? "🛡️ ממ״ד" : "❌ ממ״ד");
     if (listing.publishedDate) {
       lines.push(`📅 פורסם ב-${listing.publishedDate}`);
     }
