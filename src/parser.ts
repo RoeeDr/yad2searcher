@@ -4,8 +4,8 @@ import { parsePrice, extractItemId } from "./utils";
 
 export async function parseListingDetails(
   page: Page
-): Promise<{ viewCount?: number; daysListed?: number; publishedDate?: string }> {
-  const result: { viewCount?: number; daysListed?: number; publishedDate?: string } = {};
+): Promise<{ viewCount?: number; daysListed?: number; publishedDate?: string; description?: string; imageUrls?: string[]; hasBalcony?: boolean; hasElevator?: boolean; hasShelter?: boolean }> {
+  const result: { viewCount?: number; daysListed?: number; publishedDate?: string; description?: string; imageUrls?: string[]; hasBalcony?: boolean; hasElevator?: boolean; hasShelter?: boolean } = {};
 
   try {
     const banner = await page.$(
@@ -27,6 +27,44 @@ export async function parseListingDetails(
       if (dateMatch) {
         result.publishedDate = dateMatch[1];
       }
+    }
+    const descEl = await page.$('[data-testid="property-description"]');
+    if (descEl) {
+      const descText = ((await descEl.textContent()) ?? "").trim();
+      if (descText) {
+        result.description = descText;
+      }
+    }
+
+    // Parse amenities from the page
+    const pageText = await page.evaluate(() => document.body.innerText);
+    result.hasBalcony = pageText.includes("מרפסת");
+    result.hasElevator = pageText.includes("מעלית");
+    result.hasShelter = pageText.includes("ממ\"ד") || pageText.includes("ממ״ד");
+
+    // Wait for gallery section and images to render
+    const gallerySection = await page
+      .waitForSelector('[data-testid="item-gallery-section"]', { timeout: 5000 })
+      .catch(() => null);
+
+    if (gallerySection) {
+      // Scroll gallery into view to trigger lazy-loaded images
+      await gallerySection.scrollIntoViewIfNeeded().catch(() => {});
+      await new Promise((r) => setTimeout(r, 1500));
+
+      const imageUrls = await page.$$eval(
+        '[data-testid="item-gallery-section"] li:not([class*="mobile-only"]) img[data-testid="image"]',
+        (imgs) =>
+          (imgs as HTMLImageElement[])
+            .map((img) => img.src || img.dataset.src || "")
+            .filter((src) => src.startsWith("http"))
+      );
+      console.log(`[parser] found ${imageUrls.length} gallery images`);
+      if (imageUrls.length > 0) {
+        result.imageUrls = [...new Set(imageUrls)];
+      }
+    } else {
+      console.log("[parser] gallery section not found");
     }
   } catch (err) {
     console.error("[parser] error parsing listing details:", err);

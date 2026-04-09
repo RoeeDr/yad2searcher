@@ -1,6 +1,6 @@
 import path from "path";
 import dotenv from "dotenv";
-import { AppConfig } from "./types";
+import { AppConfig, AppMode } from "./types";
 
 dotenv.config();
 
@@ -17,8 +17,22 @@ function optionalEnv(key: string, defaultValue: string): string {
 }
 
 export function loadConfig(): AppConfig {
+  const mode = optionalEnv("APP_MODE", "static") as AppMode;
+
+  if (mode !== "static" && mode !== "dynamic") {
+    throw new Error(`Invalid APP_MODE: ${mode}. Must be "static" or "dynamic".`);
+  }
+
+  if (mode === "dynamic" && !process.env.TELEGRAM_BOT_TOKEN) {
+    throw new Error("TELEGRAM_BOT_TOKEN is required in dynamic mode");
+  }
+
   return {
-    searchUrls: requiredEnv("YAD2_SEARCH_URL").split(",").map((u) => u.trim()),
+    mode,
+    searchUrls:
+      mode === "static"
+        ? requiredEnv("YAD2_SEARCH_URL").split(",").map((u) => u.trim())
+        : [],
     mongoUri: optionalEnv("MONGO_URI", "mongodb://localhost:27017"),
     mongoDbName: optionalEnv("MONGO_DB_NAME", "yad2searcher"),
     mongoCollectionName: optionalEnv("MONGO_COLLECTION", "listings"),

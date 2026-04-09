@@ -9,10 +9,15 @@ export interface ParsedListing {
   brokerText: string;
   listingUrl: string;
   imageUrl?: string;
+  imageUrls?: string[];
   hasPriceDrop: boolean;
   viewCount?: number;
   daysListed?: number;
   publishedDate?: string;
+  description?: string;
+  hasBalcony?: boolean;
+  hasElevator?: boolean;
+  hasShelter?: boolean;
 }
 
 export interface ListingDocument {
@@ -31,6 +36,7 @@ export interface ListingDocument {
   priceHistory: PriceEntry[];
   alertedAt: Date | null;
   priceChangeAlertedAt: Date | null;
+  description?: string;
 }
 
 export interface PriceEntry {
@@ -41,15 +47,33 @@ export interface PriceEntry {
 export enum AlertType {
   NEW_LISTING = "NEW_LISTING",
   PRICE_CHANGE = "PRICE_CHANGE",
+  LISTING_UPDATED = "LISTING_UPDATED",
+}
+
+export interface FieldChange {
+  field: string;
+  oldValue: string;
+  newValue: string;
 }
 
 export interface AlertPayload {
   type: AlertType;
   listing: ParsedListing;
   previousPrice?: number;
+  changes?: FieldChange[];
+}
+
+export type AppMode = "static" | "dynamic";
+
+export interface UserDocument {
+  _id: string; // chatId
+  urls: string[];
+  registeredAt: Date;
+  lastActiveAt: Date;
 }
 
 export interface AppConfig {
+  mode: AppMode;
   searchUrls: string[];
   mongoUri: string;
   mongoDbName: string;
