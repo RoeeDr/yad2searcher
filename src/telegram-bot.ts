@@ -82,6 +82,19 @@ export class TelegramBot {
       await this.sendMessage(chatId, "❌ URL must be a yad2.co.il URL");
       return;
     }
+
+    const userUrlCount = await this.storage.getUserUrlCount(chatId);
+    if (userUrlCount >= 3) {
+      await this.sendMessage(chatId, "❌ You already have 3 URLs (max). Remove one first with /remove.");
+      return;
+    }
+
+    const totalUrlCount = await this.storage.getTotalUrlCount();
+    if (totalUrlCount >= 6) {
+      await this.sendMessage(chatId, "❌ Global URL limit reached (6). Cannot add more URLs at this time.");
+      return;
+    }
+
     await this.storage.registerUrl(chatId, url);
     await this.sendMessage(chatId, "✅ URL added! Use /list to see all your URLs.");
   }

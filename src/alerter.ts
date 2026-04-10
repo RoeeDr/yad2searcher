@@ -3,6 +3,7 @@ import { geocodeAddress } from "./geocode";
 
 export interface Alerter {
   alert(payload: AlertPayload): Promise<void>;
+  notifyError(message: string): Promise<void>;
 }
 
 function parseInfoLine2(line: string): { rooms: string; floor: string; sqm: string } {
@@ -18,6 +19,10 @@ function parseInfoLine2(line: string): { rooms: string; floor: string; sqm: stri
 const RTL = "\u200F";
 
 export class TerminalAlerter implements Alerter {
+  async notifyError(message: string): Promise<void> {
+    console.error(`[alert] ❌ ${message}`);
+  }
+
   async alert(payload: AlertPayload): Promise<void> {
     const { type, listing, previousPrice, changes } = payload;
     const separator = "═".repeat(60);
@@ -103,6 +108,11 @@ export class TelegramAlerter implements Alerter {
   constructor(botToken: string, chatId: string) {
     this.botToken = botToken;
     this.chatId = chatId;
+  }
+
+  async notifyError(message: string): Promise<void> {
+    const baseUrl = `https://api.telegram.org/bot${this.botToken}`;
+    await this.sendTextMessage(baseUrl, `❌ ${message}`);
   }
 
   async alert(payload: AlertPayload): Promise<void> {

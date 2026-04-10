@@ -35,7 +35,16 @@ async function runCrawlCycle(
         await randomSleep(config.minPageDelay, config.maxPageDelay);
       }
 
-      await crawler.navigateToSearch(searchUrl);
+      try {
+        await crawler.navigateToSearch(searchUrl);
+      } catch (navErr: any) {
+        const errMsg = navErr?.message || String(navErr);
+        console.error(`[cycle] failed to load URL ${urlIdx + 1}: ${errMsg}`);
+        for (const alerter of alerters) {
+          await alerter.notifyError(`סריקה נכשלה עבור URL ${urlIdx + 1}: ${searchUrl}\n\nסיבה: ${errMsg}`);
+        }
+        continue;
+      }
 
       do {
       totalPages++;

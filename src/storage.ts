@@ -216,6 +216,21 @@ export class Storage {
     await this.collection.deleteMany({ userId: chatId });
   }
 
+  async getUserUrlCount(chatId: string): Promise<number> {
+    const user = await this.usersCollection.findOne({ _id: chatId });
+    return user?.urls?.length || 0;
+  }
+
+  async getTotalUrlCount(): Promise<number> {
+    const result = await this.usersCollection
+      .aggregate<{ total: number }>([
+        { $project: { count: { $size: "$urls" } } },
+        { $group: { _id: null, total: { $sum: "$count" } } },
+      ])
+      .toArray();
+    return result[0]?.total || 0;
+  }
+
   async getAllUsers(): Promise<UserDocument[]> {
     return this.usersCollection
       .find({ urls: { $exists: true, $not: { $size: 0 } } })
