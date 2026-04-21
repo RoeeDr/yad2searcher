@@ -88,6 +88,8 @@ async function runCrawlCycle(
                   alertPayload.listing.hasBalcony = details.hasBalcony;
                   alertPayload.listing.hasElevator = details.hasElevator;
                   alertPayload.listing.hasShelter = details.hasShelter;
+                  alertPayload.listing.publisherName = details.publisherName;
+                  alertPayload.listing.phoneNumber = details.phoneNumber;
                   if (details.imageUrls) {
                     alertPayload.listing.imageUrls = details.imageUrls;
                   }

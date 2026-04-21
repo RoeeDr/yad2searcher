@@ -4,8 +4,8 @@ import { parsePrice, extractItemId } from "./utils";
 
 export async function parseListingDetails(
   page: Page
-): Promise<{ viewCount?: number; daysListed?: number; publishedDate?: string; description?: string; imageUrls?: string[]; hasBalcony?: boolean; hasElevator?: boolean; hasShelter?: boolean }> {
-  const result: { viewCount?: number; daysListed?: number; publishedDate?: string; description?: string; imageUrls?: string[]; hasBalcony?: boolean; hasElevator?: boolean; hasShelter?: boolean } = {};
+): Promise<{ viewCount?: number; daysListed?: number; publishedDate?: string; description?: string; imageUrls?: string[]; hasBalcony?: boolean; hasElevator?: boolean; hasShelter?: boolean; publisherName?: string; phoneNumber?: string }> {
+  const result: { viewCount?: number; daysListed?: number; publishedDate?: string; description?: string; imageUrls?: string[]; hasBalcony?: boolean; hasElevator?: boolean; hasShelter?: boolean; publisherName?: string; phoneNumber?: string } = {};
 
   try {
     const banner = await page.$(
@@ -65,6 +65,30 @@ export async function parseListingDetails(
       }
     } else {
       console.log("[parser] gallery section not found");
+    }
+
+    // Click "show phone number" button to reveal contact info
+    const showContactsBtn = await page.$('button[data-testid="show-ad-contacts-button"]');
+    if (showContactsBtn) {
+      await showContactsBtn.click();
+      await new Promise((r) => setTimeout(r, 1500));
+    }
+
+    // Extract publisher name — broker listings use a data-testid, private listings use a class
+    const brokerNameEl = await page.$('span[data-testid="agency-ad-contact-info-name"]');
+    const privateNameEl = await page.$('span[class*="ad-contact-info_name"]');
+    const nameEl = brokerNameEl ?? privateNameEl;
+    if (nameEl) {
+      const name = ((await nameEl.textContent()) ?? "").trim();
+      if (name) result.publisherName = name;
+    }
+
+    // Extract phone number — same selector for both listing types
+    const phoneEl = await page.$('a[data-testid="phone-number-link-anchor"]');
+    if (phoneEl) {
+      const href = (await phoneEl.getAttribute("href")) ?? "";
+      const phone = href.replace("tel:", "").trim();
+      if (phone) result.phoneNumber = phone;
     }
   } catch (err) {
     console.error("[parser] error parsing listing details:", err);

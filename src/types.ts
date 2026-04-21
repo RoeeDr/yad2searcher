@@ -18,6 +18,8 @@ export interface ParsedListing {
   hasBalcony?: boolean;
   hasElevator?: boolean;
   hasShelter?: boolean;
+  publisherName?: string;
+  phoneNumber?: string;
 }
 
 export interface ListingDocument {

@@ -58,6 +58,13 @@ export class TerminalAlerter implements Alerter {
     console.log(listing.hasElevator === undefined ? "⚪ מעלית - לא צוין" : listing.hasElevator ? "🛗 מעלית" : "❌ מעלית");
     console.log(listing.hasShelter === undefined ? "⚪ ממ״ד - לא צוין" : listing.hasShelter ? "🛡️ ממ״ד" : "❌ ממ״ד");
 
+    if (listing.publisherName) {
+      console.log(`👤 ${listing.publisherName}`);
+    }
+    if (listing.phoneNumber) {
+      console.log(`📞 ${listing.phoneNumber}`);
+    }
+
     if (listing.publishedDate) {
       console.log(`📅 פורסם ב-${listing.publishedDate}`);
     }
@@ -147,6 +154,12 @@ export class TelegramAlerter implements Alerter {
     lines.push(listing.hasBalcony === undefined ? "⚪ מרפסת - לא צוין" : listing.hasBalcony ? "🌇 מרפסת" : "❌ מרפסת");
     lines.push(listing.hasElevator === undefined ? "⚪ מעלית - לא צוין" : listing.hasElevator ? "🛗 מעלית" : "❌ מעלית");
     lines.push(listing.hasShelter === undefined ? "⚪ ממ״ד - לא צוין" : listing.hasShelter ? "🛡️ ממ״ד" : "❌ ממ״ד");
+    if (listing.publisherName) {
+      lines.push(`👤 ${listing.publisherName}`);
+    }
+    if (listing.phoneNumber) {
+      lines.push(`📞 ${listing.phoneNumber}`);
+    }
     if (listing.publishedDate) {
       lines.push(`📅 פורסם ב-${listing.publishedDate}`);
     }
