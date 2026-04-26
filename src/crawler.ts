@@ -117,7 +117,12 @@ export class Crawler {
       }
     }
 
-    throw new Error("Failed to load feed list after all retries — possible anti-bot block");
+    // CAPTCHA persists across runs via the browser profile — wipe it so the next run starts clean
+    const fs = await import("fs");
+    fs.rmSync(this.config.browserDataDir, { recursive: true, force: true });
+    console.warn(`[crawler] cleared browser data at ${this.config.browserDataDir} to reset CAPTCHA state`);
+
+    throw new Error("Failed to load feed list after all retries — possible anti-bot block. Browser data has been cleared for next run.");
   }
 
   getPage(): Page {

@@ -8,6 +8,7 @@
     "start": "node dist/index.js",
     "dev": "tsc && node dist/index.js",
     "crawl-once": "CRAWL_ONCE=true node dist/index.js",
+    "clean-browser": "rm -rf .browser-data && echo 'Browser data cleared'",
     "clean-db": "node -e \"const{MongoClient}=require('mongodb');const c=new MongoClient(process.env.MONGO_URI||'mongodb://localhost:27017');c.connect().then(()=>c.db(process.env.MONGO_DB_NAME||'yad2searcher').collection(process.env.MONGO_COLLECTION||'listings').drop()).then(()=>{console.log('DB cleaned');c.close()}).catch(e=>{if(e.codeName==='NamespaceNotFound')console.log('DB already clean');else console.error(e);c.close()})\""
   },
   "dependencies": {
