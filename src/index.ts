@@ -4,7 +4,7 @@ import { parseListings, parseListingDetails } from "./parser";
 import { Storage } from "./storage";
 import { createAlerters, Alerter, TerminalAlerter, TelegramAlerter } from "./alerter";
 import { formatTime, randomSleep, randomInt } from "./utils";
-import { AppConfig, ParsedListing } from "./types";
+import { AlertType, AppConfig, ParsedListing } from "./types";
 import { TelegramBot } from "./telegram-bot";
 
 let shuttingDown = false;
@@ -76,7 +76,8 @@ async function runCrawlCycle(
           const alertPayload = await storage.processListing(listing, userId);
           if (alertPayload) {
             if (config.fetchDetails) {
-              const maxAttempts = 2;
+              const isNewListing = alertPayload.type === AlertType.NEW_LISTING;
+              const maxAttempts = isNewListing ? 3 : 2;
               for (let attempt = 1; attempt <= maxAttempts; attempt++) {
                 try {
                   await randomSleep(2000, 5000);
@@ -93,7 +94,6 @@ async function runCrawlCycle(
                   if (details.imageUrls) {
                     alertPayload.listing.imageUrls = details.imageUrls;
                   }
-                  // Check description change and store it
                   if (details.description !== undefined) {
                     const descChange = await storage.updateDescription(
                       listing.itemId, details.description, userId
@@ -103,9 +103,20 @@ async function runCrawlCycle(
                       alertPayload.changes.push(descChange);
                     }
                   }
+                  await storage.updateContactInfo(
+                    listing.itemId, details.phoneNumber, details.publisherName, userId
+                  );
                   await randomSleep(2000, 5000);
                   await crawler.goBack();
-                  break;
+
+                  const hasAllFields = details.phoneNumber && details.description;
+                  if (hasAllFields || attempt === maxAttempts) {
+                    if (!hasAllFields && isNewListing) {
+                      console.warn(`[cycle] listing ${listing.itemId} still missing fields after ${maxAttempts} attempts`);
+                    }
+                    break;
+                  }
+                  console.log(`[cycle] listing ${listing.itemId} missing fields, retrying detail fetch (attempt ${attempt}/${maxAttempts})...`);
                 } catch (detailErr) {
                   if (attempt < maxAttempts) {
                     console.warn(`[cycle] attempt ${attempt} failed for ${listing.itemId}, retrying...`);

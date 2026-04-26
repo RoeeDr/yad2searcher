@@ -60,6 +60,8 @@ export class Storage {
         alertedAt: now,
         priceChangeAlertedAt: null,
         description: parsed.description,
+        phoneNumber: parsed.phoneNumber,
+        publisherName: parsed.publisherName,
       };
       if (userId) {
         (doc as any).userId = userId;
@@ -86,6 +88,12 @@ export class Storage {
 
     if (parsed.description !== undefined) {
       update.$set.description = parsed.description;
+    }
+    if (parsed.phoneNumber) {
+      update.$set.phoneNumber = parsed.phoneNumber;
+    }
+    if (parsed.publisherName) {
+      update.$set.publisherName = parsed.publisherName;
     }
 
     const priceChanged =
@@ -177,6 +185,21 @@ export class Storage {
       };
     }
     return null;
+  }
+
+  async updateContactInfo(
+    itemId: string,
+    phoneNumber?: string,
+    publisherName?: string,
+    userId?: string
+  ): Promise<void> {
+    const docId = userId ? `${userId}::${itemId}` : itemId;
+    const $set: any = {};
+    if (phoneNumber) $set.phoneNumber = phoneNumber;
+    if (publisherName) $set.publisherName = publisherName;
+    if (Object.keys($set).length > 0) {
+      await this.collection.updateOne({ _id: docId }, { $set });
+    }
   }
 
   // ── User management (dynamic mode) ──

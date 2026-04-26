@@ -158,7 +158,7 @@ export class TelegramAlerter implements Alerter {
       lines.push(`👤 ${listing.publisherName}`);
     }
     if (listing.phoneNumber) {
-      lines.push(`📞 ${listing.phoneNumber}`);
+      lines.push(`📞 ‏${listing.phoneNumber}`);
     }
     if (listing.publishedDate) {
       lines.push(`📅 פורסם ב-${listing.publishedDate}`);

@@ -8,9 +8,9 @@ export async function parseListingDetails(
   const result: { viewCount?: number; daysListed?: number; publishedDate?: string; description?: string; imageUrls?: string[]; hasBalcony?: boolean; hasElevator?: boolean; hasShelter?: boolean; publisherName?: string; phoneNumber?: string } = {};
 
   try {
-    const banner = await page.$(
-      'div[class*="ad-seen-count-banner_adAttractivenessBox"]'
-    );
+    const banner = await page
+      .waitForSelector('div[class*="ad-seen-count-banner_adAttractivenessBox"]', { timeout: 3000 })
+      .catch(() => null);
     if (banner) {
       const text = (await banner.textContent()) ?? "";
       const match = text.match(/(\d+)\s*פעמים\s*ב-\s*(\d+)\s*ימים/);
@@ -20,7 +20,9 @@ export async function parseListingDetails(
       }
     }
 
-    const dateEl = await page.$('span[class*="report-ad_createdAt"]');
+    const dateEl = await page
+      .waitForSelector('span[class*="report-ad_createdAt"]', { timeout: 3000 })
+      .catch(() => null);
     if (dateEl) {
       const dateText = (await dateEl.textContent()) ?? "";
       const dateMatch = dateText.match(/(\d{2}\/\d{2}\/\d{2})/);
@@ -28,7 +30,9 @@ export async function parseListingDetails(
         result.publishedDate = dateMatch[1];
       }
     }
-    const descEl = await page.$('[data-testid="property-description"]');
+    const descEl = await page
+      .waitForSelector('[data-testid="property-description"]', { timeout: 3000 })
+      .catch(() => null);
     if (descEl) {
       const descText = ((await descEl.textContent()) ?? "").trim();
       if (descText) {
@@ -67,11 +71,21 @@ export async function parseListingDetails(
       console.log("[parser] gallery section not found");
     }
 
-    // Click "show phone number" button to reveal contact info
+    // Click "show phone number" button and wait for contact info to load
+    const phoneSelector = 'a[data-testid="phone-number-link-anchor"]';
     const showContactsBtn = await page.$('button[data-testid="show-ad-contacts-button"]');
     if (showContactsBtn) {
-      await showContactsBtn.click();
-      await new Promise((r) => setTimeout(r, 1500));
+      for (let phoneAttempt = 0; phoneAttempt < 2; phoneAttempt++) {
+        await showContactsBtn.click();
+        const phoneEl = await page.waitForSelector(phoneSelector, { timeout: 5000 }).catch(() => null);
+        if (phoneEl) {
+          const href = (await phoneEl.getAttribute("href")) ?? "";
+          const phone = href.replace("tel:", "").trim();
+          if (phone) result.phoneNumber = phone;
+          break;
+        }
+        console.log(`[parser] phone not revealed after click attempt ${phoneAttempt + 1}, retrying...`);
+      }
     }
 
     // Extract publisher name — broker listings use a data-testid, private listings use a class
@@ -82,17 +96,25 @@ export async function parseListingDetails(
       const name = ((await nameEl.textContent()) ?? "").trim();
       if (name) result.publisherName = name;
     }
-
-    // Extract phone number — same selector for both listing types
-    const phoneEl = await page.$('a[data-testid="phone-number-link-anchor"]');
-    if (phoneEl) {
-      const href = (await phoneEl.getAttribute("href")) ?? "";
-      const phone = href.replace("tel:", "").trim();
-      if (phone) result.phoneNumber = phone;
-    }
   } catch (err) {
     console.error("[parser] error parsing listing details:", err);
   }
+
+  const found = [
+    result.phoneNumber && "phone",
+    result.description && "description",
+    result.publishedDate && "date",
+    result.viewCount !== undefined && "views",
+    result.publisherName && "publisher",
+  ].filter(Boolean);
+  const missing = [
+    !result.phoneNumber && "phone",
+    !result.description && "description",
+    !result.publishedDate && "date",
+    result.viewCount === undefined && "views",
+    !result.publisherName && "publisher",
+  ].filter(Boolean);
+  console.log(`[parser] details — found: [${found.join(", ")}] | missing: [${missing.join(", ")}]`);
 
   return result;
 }

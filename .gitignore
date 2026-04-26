@@ -4,3 +4,4 @@ dist/
 *.log
 .browser-data/
 debug-attempt-*.png
+.claude/settings.local.json

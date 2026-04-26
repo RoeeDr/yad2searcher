@@ -39,6 +39,8 @@ export interface ListingDocument {
   alertedAt: Date | null;
   priceChangeAlertedAt: Date | null;
   description?: string;
+  phoneNumber?: string;
+  publisherName?: string;
 }
 
 export interface PriceEntry {
