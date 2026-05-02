@@ -31,7 +31,7 @@ export function loadConfig(): AppConfig {
     mode,
     searchUrls:
       mode === "static"
-        ? requiredEnv("YAD2_SEARCH_URL").split(",").map((u) => u.trim())
+        ? requiredEnv("YAD2_SEARCH_URL").split("\n").map((u) => u.trim()).filter(Boolean)
         : [],
     mongoUri: optionalEnv("MONGO_URI", "mongodb://localhost:27017"),
     mongoDbName: optionalEnv("MONGO_DB_NAME", "yad2searcher"),

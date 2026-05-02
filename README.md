@@ -84,7 +84,7 @@ All configuration is done via environment variables in `.env`:
 | Variable | Default | Description |
 |---|---|---|
 | `APP_MODE` | `static` | `static` (URLs from env) or `dynamic` (URLs from Telegram users) |
-| `YAD2_SEARCH_URL` | — | Yad2 search URL(s), comma-separated. Required in static mode |
+| `YAD2_SEARCH_URL` | — | Yad2 search URL(s), one per line in quotes. Required in static mode |
 | `CRAWL_INTERVAL_MIN_MINUTES` | `20` | Minimum minutes between crawl cycles |
 | `CRAWL_INTERVAL_MAX_MINUTES` | `35` | Maximum minutes between crawl cycles |
 | `CRAWL_ONCE` | `false` | Run one cycle and exit |
